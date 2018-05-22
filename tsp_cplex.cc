@@ -41,9 +41,10 @@ void CheckSolution(IloCP cp, IloIntervalSequenceVar seq) {
     cp.out() << a.getName() << ":\t" << cp.domain(a) << endl; 
 }
 
-IloNum TWBuilder(const TSPTWDataDT &data, string filename){
+IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
 
   IloEnv env;
+  int cost;
 
   try {
 
@@ -66,7 +67,7 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename){
     cout << "MISSIONS " << size_missions_multipleTW << endl;
     cout << "MISSIONS " << size_missions << endl;
 
-    if (tw_start.size() != 0){
+    if (tw_start.size() != 0) {
       for (int i=0; i<size_missions_multipleTW; i++){
         cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
       }
@@ -247,8 +248,7 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename){
     IloSearchPhaseArray phaseArray(env);
     phaseArray.add(IloSearchPhase(env, seq));
 
-    cp.solve();
-    
+
 
 
 // A mettre dans un fichier !
@@ -265,30 +265,42 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename){
       cout << i << " Demand" << " " << demand[i] << endl;
     }
 
+    if (!cp.solve()) {
+      cout << "No solution - ERROR " << endl;
+      return -1;
+    } 
+    
+    cout << "Solution per truck :" << endl;
+    for (IloInt j=0; j<nbVechicle; j++) {
+      CheckSolution(cp, seq[j]);
+    }
+
+    #if 0
     for (IloInt j=0; j<nbVechicle; j++) {
       for (IloInt i=0; i<size_missions_multipleTW+2; i++){
         cp.out() << i << " " << j << " " << cp.domain(tvisit2[i][j]) << std::endl;
       }
       cout << endl;
-      cout << "Solution per truck :" << endl;
-      for (IloInt j=0; j<nbVechicle; j++) {
-        CheckSolution(cp, seq[j]);
-      }
-    }
 
-    int cost = (cp.getObjValue());
+    }
+    #endif 
+
+    cost = (cp.getObjValue());
 
     result.set_cost(cost);
+  }
+  catch (IloException& ex) {
+    env.out() << "Caught exception: " << ex << std::endl;
 
     google::protobuf::ShutdownProtobufLibrary();
+    env.end();
 
-    return cp.getObjValue();
-
-  } catch (IloException& ex) {
-    env.out() << "Caught exception: " << ex << std::endl;
+    return cost;
   }
-  env.end();
 }
+
+
+
 
 
 

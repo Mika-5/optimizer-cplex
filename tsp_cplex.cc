@@ -166,28 +166,7 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
       model.add(IloNoOverlap(env,seq[i],Dist));
     }
 
-// Set timewindows
-    // if (tw_start.size() != 0){
-    //   for (IloInt j=0; j<nbVechicle; j++){
-    //     for (IloInt i=1; i<size_missions_multipleTW+1; i++){
-    //       tvisit2[i][j].setStartMin(tw_start[i-1]);
-    //       tvisit2[i][j].setEndMax(tw_end[i-1]);
-    //     }
-    //   }
-    // }
 
-// We can take only one of the duplicated services (a service is duplicate if it has severals timewindows)
-// if (indiceMultipleTW.size() != 0){
-// for (IloInt i=0; i<indiceMultipleTW.size(); i++){
-//   IloIntExpr eprr(env);
-//   for (IloInt j=0; j<indiceMultipleTW[i].size(); j++){
-//     for (IloInt k=0; k<nbVechicle; k++){
-//       eprr += IloPresenceOf(env, tvisit2[indiceMultipleTW[i][j]][k]);
-//     }
-//   }
-//   model.add(eprr == 1);
-// }
-// }
 
 // TimeWindow constraint (si plusieurs time window)
     for (IloInt i=0; i<size_missions+2; i++){
@@ -261,15 +240,6 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
       }
     }
 
-// Declaration of cp resolution
-// IloCP cp(model);
-// cp.setParameter(IloCP::LogPeriod, IloIntMax);
-// cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-// cp.setParameter(IloCP::SearchType, IloCP::DepthFirst);
-// // cp.setParameter(IloCP::LogVerbosity,IloCP::Quiet);
-// cp.setParameter(IloCP::TimeLimit, 1800);
-// IloSearchPhaseArray phaseArray(env);
-// phaseArray.add(IloSearchPhase(env, seq));
 
     IloCP cp(model);
     cp.setParameter(IloCP::LogPeriod, IloIntMax);

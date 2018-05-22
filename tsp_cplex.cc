@@ -35,10 +35,14 @@ using namespace std;
 DEFINE_string(instance_file, "", "instance file name or data");
 DEFINE_string(solution_file, "", "instance file name or data");
 
-void CheckSolution(IloCP cp, IloIntervalSequenceVar seq) {
+void CheckSolution(IloCP cp, IloIntervalSequenceVar seq, int j, IloIntervalVarArray2 tvisit2, int size_missions_multipleTW) {
   // Check Solution
-  for(IloIntervalVar a = cp.getFirst(seq); a.getImpl()!=0; a = cp.getNext(seq, a))
-    cp.out() << a.getName() << ":\t" << cp.domain(a) << endl; 
+
+  for (IloInt i=0; i<size_missions_multipleTW+2; i++){
+    cp.out() << i << " " << j << " " << cp.domain(tvisit2[i][j]) << std::endl;
+  }
+  // for(IloIntervalVar a = cp.getFirst(seq); a.getImpl()!=0; a = cp.getNext(seq, a))
+  //   cp.out() << a.getName() << ":\t" << cp.domain(a) << endl; 
 }
 
 IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
@@ -59,28 +63,33 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
     const vector<int> Capa = data.Capa_Vec();
     const vector<int> demand = data.demand();
     const vector<int> duration = data.duration();
-    const vector<int> tw_start = data.TimeWindow_Start();
-    const vector<int> tw_end = data.TimeWindow_End();
+    const vector<vector<int>> tw_start = data.TimeWindow_Start();
+    const vector<vector<int>> tw_end = data.TimeWindow_End();
+    const vector<int> tw_start_car = data.tw_start_car();
+    const vector<int> tw_end_car = data.tw_end_car();
     const vector<vector<float>> Matrix = data.Matrice();
     const vector<vector<int>> indiceMultipleTW = data.indiceMultipleTW();
 
-    cout << "MISSIONS " << size_missions_multipleTW << endl;
-    cout << "MISSIONS " << size_missions << endl;
+    char name[64];
+    vector<int> t;
+// for (int i=0; i<size_missions; i++){
+//   for (int j=0; j<tw_start[i].size(); j++){
+//     if (tw_end[i][j] == 0){
+//       t.push_back(214743);
+//     }else{
+//       t.push_back(tw_end[i][j]);
+//     }
+//   }
+//   tw_end[i].push_back(t);
+// }
 
-    if (tw_start.size() != 0) {
-      for (int i=0; i<size_missions_multipleTW; i++){
-        cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
-      }
-    }
-    for (int i=0; i<nbVechicle; i++){
-      cout << i << " Capacity" << " " << Capa[i] << endl;
-    }
 
     for (int i=0; i<size_missions_multipleTW; i++){
-      cout << i << " Demand" << " " << demand[i] << endl;
+      for (int j=0; j<tw_start[i].size(); j++){
+        cout << i << " TimeWindow " << tw_start[i][j] << " " << tw_end[i][j] << " ";
+      }
+      cout << endl;
     }
-
-    char name[64];
 
     IloIntervalVarArray visit(env,size_missions_multipleTW+2);
     IloIntervalVarArray2 tvisit2(env,size_missions_multipleTW+2);
@@ -158,14 +167,14 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
     }
 
 // Set timewindows
-    if (tw_start.size() != 0){
-      for (IloInt j=0; j<nbVechicle; j++){
-        for (IloInt i=1; i<size_missions_multipleTW+1; i++){
-          tvisit2[i][j].setStartMin(tw_start[i-1]);
-          tvisit2[i][j].setEndMax(tw_end[i-1]);
-        }
-      }
-    }
+    // if (tw_start.size() != 0){
+    //   for (IloInt j=0; j<nbVechicle; j++){
+    //     for (IloInt i=1; i<size_missions_multipleTW+1; i++){
+    //       tvisit2[i][j].setStartMin(tw_start[i-1]);
+    //       tvisit2[i][j].setEndMax(tw_end[i-1]);
+    //     }
+    //   }
+    // }
 
 // We can take only one of the duplicated services (a service is duplicate if it has severals timewindows)
 // if (indiceMultipleTW.size() != 0){
@@ -181,13 +190,34 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
 // }
 
 // TimeWindow constraint (si plusieurs time window)
-// for (IloInt i=1; i<size_missions+1; i++){
-//   IloNumToNumStepFunction StepFunction(env,start[i-1], end[i-1]);
-//   // StepFunction.setValue(tw_start[i-1], tw_end[i-1],0);
-//   // cout << "stepfunction :" << StepFunction << endl;
-//   for (IloInt j=0; j<nbVechicle; j++){
-//     tvisit2[i][j].setIntensity(StepFunction);
-//     model.add(IloForbidExtent(env, tvisit2[i][j], StepFunction));
+    for (IloInt i=0; i<size_missions+2; i++){
+      IloNumToNumStepFunction StepFunction(env);
+      if (i==0){
+        for (IloInt j=0; j<tw_start_car.size(); j++){
+          StepFunction.setValue(tw_start_car[j], tw_end_car[j], 1);
+          tvisit2[i][j].setIntensity(StepFunction);
+          model.add(IloForbidExtent(env, tvisit2[i][j], StepFunction));
+        }
+      }else if (i==size_missions+1){
+        for (IloInt j=0; j<tw_start_car.size(); j++){
+          StepFunction.setValue(tw_start_car[j], tw_end_car[j], 1);
+          tvisit2[i][j].setIntensity(StepFunction);
+          model.add(IloForbidExtent(env, tvisit2[i][j], StepFunction));
+        }
+      }else{
+        for (int j=0; j<tw_start[i-1].size(); j++){
+          StepFunction.setValue(tw_start[i-1][j], tw_end[i-1][j], 1);
+        }
+        for (IloInt j=0; j<nbVechicle; j++){
+          tvisit2[i][j].setIntensity(StepFunction);
+          model.add(IloForbidExtent(env, tvisit2[i][j], StepFunction));
+        }
+      }
+    }
+
+// for (int i=0; i<indiceMultipleTW.size(); i++){
+//   for (int k=0; k<indiceMultipleTW[i].size()){
+
 //   }
 // }
 
@@ -244,17 +274,18 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
     IloCP cp(model);
     cp.setParameter(IloCP::LogPeriod, IloIntMax);
     cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-    cp.setParameter(IloCP::TimeLimit, 36);
+    cp.setParameter(IloCP::TimeLimit, 3600);
     IloSearchPhaseArray phaseArray(env);
     phaseArray.add(IloSearchPhase(env, seq));
-
-
 
 
 // A mettre dans un fichier !
     if (tw_start.size() != 0){
       for (int i=0; i<size_missions_multipleTW; i++){
-        cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
+        for (int j=0; j<tw_start[i].size(); j++){
+          cout << i << " TimeWindow " << tw_start[i][j] << " " << tw_end[i][j] << " ";
+        }
+        cout << endl;
       }
     }
     for (int i=0; i<nbVechicle; i++){
@@ -272,7 +303,7 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
     
     cout << "Solution per truck :" << endl;
     for (IloInt j=0; j<nbVechicle; j++) {
-      CheckSolution(cp, seq[j]);
+      CheckSolution(cp, seq[j], j, tvisit2, size_missions_multipleTW);
     }
 
     #if 0

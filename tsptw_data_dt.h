@@ -50,11 +50,11 @@ public:
     return matrice_;
   }
 
-  vector<int> TimeWindow_Start() const {
+  vector<vector<int>> TimeWindow_Start() const {
     return timewindow_start_ ;
   }
 
-  vector<int> TimeWindow_End() const {
+  vector<vector<int>> TimeWindow_End() const {
     return timewindow_end_ ;
   }
 
@@ -64,6 +64,14 @@ public:
 
   int size_missions_multipleTW() const {
     return size_missions_multipleTW_;
+  }
+
+  vector<int> tw_start_car() const {
+    return tw_start_car_;
+  }
+
+  vector<int> tw_end_car() const {
+    return tw_end_car_;
   }
 
 private:
@@ -76,8 +84,10 @@ private:
   vector<int> CapaVec_;
   vector<int> demand_;
   vector<int> duration_;
-  vector<int> timewindow_start_;
-  vector<int> timewindow_end_;
+  vector<int> tw_start_car_;
+  vector<int> tw_end_car_;
+  vector<vector<int>> timewindow_start_;
+  vector<vector<int>> timewindow_end_;
   vector<vector<float>> matrice_;
   vector<vector<int>> indiceMultipleTW_;
   vector<int> indice_;
@@ -111,6 +121,9 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
 
   int quant=0;
   int j=-1;
+  int tws = 0;
+  vector<int> start;
+  vector<int> end;
   for (const cplex_vrp::Service& service: problem.services()){
     j+=1;
     // if (service.duration() != 0){
@@ -132,17 +145,22 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
     //   indiceMultipleTW_.push_back(indice_);
     //   indice_.clear();
     // }
-
     for (const cplex_vrp::TimeWindow& tw: service.time_windows()) {
-      timewindow_start_.push_back(tw.start());
-      timewindow_end_.push_back(tw.end());
+      start.push_back(tw.start());
+      end.push_back(tw.end());
     }
+    timewindow_start_.push_back(start);
+    timewindow_end_.push_back(end);
+    start.clear();
+    end.clear();
   }
 
   for (const cplex_vrp::Vehicle& vehicle: problem.vehicles()) {
     for (const cplex_vrp::Capacity& capacity: vehicle.capacities()) {
       CapaVec_.push_back(capacity.limit()/1000);
     }
+    tw_start_car_.push_back(vehicle.time_window().start());
+    tw_end_car_.push_back(vehicle.time_window().end());
   }
 
   for (int i=0; i<nbService+2; i++){

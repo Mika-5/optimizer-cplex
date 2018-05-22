@@ -1,4 +1,4 @@
-SYSTEM = x86-64_linux
+SYSTEM = $(OSDIR)
 LIBFORMAT = static_pic
 CPLEX_TOP = ../CPLEX
 EXDIR = ../optimizer-cplex
@@ -12,6 +12,8 @@ PROTOBUF_INC = -I$(UNIX_PROTOBUF_DIR)/include
 CCC = g++ -fPIC -std=c++0x -fwrapv
 GFLAGS_INC = -I$(EXDIR)/dependencies/install/include -I$(CPLEX_TOP)/cplex/include -I$(CPLEX_TOP)/cpoptimizer/include -I$(CPLEX_TOP)/concert/include
 
+OSDIR=x86-64_osx
+
 CFLAGS = -Wno-deprecated $(PROTOBUF_INC) 
 #------------------------------------------------------------
 #
@@ -22,7 +24,7 @@ CFLAGS = -Wno-deprecated $(PROTOBUF_INC)
 #------------------------------------------------------------
 export ILOG_HOME= ../CPLEX
 
-export LD_LIBRARY_PATH=$ILOG_HOME/cpoptimizer/bin/x86-64_linux
+export LD_LIBRARY_PATH=$ILOG_HOME/cpoptimizer/bin/$(OSDIR)
 
 export ILOG_LICENSE_FILE=$ILOG_HOME/license
 
@@ -48,13 +50,13 @@ CCOPT = -m64 -O -fPIC -fexceptions -DNDEBUG -DIL_STD
 # Link options and libraries
 # ---------------------------------------------------------------------
 
-CPLEXBINDIR = $(CPLEXDIR)/bin/x86-64_linux
+CPLEXBINDIR = $(CPLEXDIR)/bin/$(OSDIR)
 CONCERTXBINDIR = $(CONCERTDIR)/include
 CPLEXLIBDIR = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 CONCERTLIBDIR = $(CONCERTDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 
-CCLNFLAGS = $(ILOG_HOME)/cpoptimizer/lib/x86-64_linux/static_pic -lcp -L $(CPLEXLIBDIR) -lilocplex -lcplex -L $(CONCERTLIBDIR) -lconcert -m64 -lm -pthread
-LDFLAGS = -L $(ILOG_HOME)/cpoptimizer/lib/x86-64_linux/static_pic -lcp -L$(CPLEXDIR)/lib/x86-64_linux/static_pic -lcplex -L$(CONCERTDIR)/lib/x86-64_linux/static_pic -lconcert  -lpthread -lm -ldl 
+CCLNFLAGS = $(ILOG_HOME)/cpoptimizer/lib/$(OSDIR)/static_pic -lcp -L $(CPLEXLIBDIR) -lilocplex -lcplex -L $(CONCERTLIBDIR) -lconcert -m64 -lm -pthread
+LDFLAGS = -L $(ILOG_HOME)/cpoptimizer/lib/$(OSDIR)/static_pic -lcp -L$(CPLEXDIR)/lib/$(OSDIR)/static_pic -lcplex -L$(CONCERTDIR)/lib/$(OSDIR)/static_pic -lconcert  -lpthread -lm -ldl 
 
 CCFLAGS = $(CCOPT) -I $(CPLEXBINDIR) -I $(CONCERTXBINDIR) -w
 
@@ -146,11 +148,11 @@ tsp_cplex.o: tsp_cplex.cc \
 	cplex_vrp.pb.h \
 	cplex_result.pb.h \
 	tsptw_data_dt.h
-	$(CCC) $(CFLAGS) $(GFLAGS_INC) -c $(LDFLAGS) tsp_cplex.cc -o tsp_cplex.o 
+	$(CCC) $(CCFLAGS) $(GFLAGS_INC) -c $(LDFLAGS) tsp_cplex.cc -o tsp_cplex.o 
 
-tsp_cplex: tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o $(CPLEX_TOP)/cpoptimizer/lib/x86-64_linux/static_pic/libcp.a
-	$(CCC) $(CFLAGS) -g tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o -lz -lrt -lpthread \
-	-L $(CPLEX_TOP)/cpoptimizer/lib/x86-64_linux/static_pic/libcp.a -L dependencies/install/lib -lprotobuf -L dependencies/install/lib -lgflags \
+tsp_cplex: tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o 
+	$(CCC) $(CFLAGS) -g tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o -lz -lpthread \
+	-L $(CPLEX_TOP)/cpoptimizer/lib/$(OSDIR)/static_pic -L dependencies/install/lib -lprotobuf -L dependencies/install/lib -lgflags \
 	-o tsp_cplex $(LDFLAGS)
 
 local_clean:

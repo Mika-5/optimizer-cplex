@@ -35,84 +35,90 @@ using namespace std;
 DEFINE_string(instance_file, "", "instance file name or data");
 DEFINE_string(solution_file, "", "instance file name or data");
 
+void CheckSolution(IloCP cp, IloIntervalSequenceVar seq) {
+  // Check Solution
+  for(IloIntervalVar a = cp.getFirst(seq); a.getImpl()!=0; a = cp.getNext(seq, a))
+    cp.out() << a.getName() << ":\t" << cp.domain(a) << endl; 
+}
+
 IloNum TWBuilder(const TSPTWDataDT &data, string filename){
 
-IloEnv env;
+  IloEnv env;
 
-try {
+  try {
 
-IloModel model(env);
+    IloModel model(env);
 
-GOOGLE_PROTOBUF_VERIFY_VERSION;
-cplex_result::Result result;
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    cplex_result::Result result;
 
-const int size_missions = data.SizeMissions();
-const int size_missions_multipleTW = data.size_missions_multipleTW();
-const int nbVechicle = data.NbVehicles();
-const vector<int> Capa = data.Capa_Vec();
-const vector<int> demand = data.demand();
-const vector<int> duration = data.duration();
-const vector<int> tw_start = data.TimeWindow_Start();
-const vector<int> tw_end = data.TimeWindow_End();
-const vector<vector<float>> Matrix = data.Matrice();
-const vector<vector<int>> indiceMultipleTW = data.indiceMultipleTW();
+    const int size_missions = data.SizeMissions();
+    const int size_missions_multipleTW = data.size_missions_multipleTW();
+    const int nbVechicle = data.NbVehicles();
+    const vector<int> Capa = data.Capa_Vec();
+    const vector<int> demand = data.demand();
+    const vector<int> duration = data.duration();
+    const vector<int> tw_start = data.TimeWindow_Start();
+    const vector<int> tw_end = data.TimeWindow_End();
+    const vector<vector<float>> Matrix = data.Matrice();
+    const vector<vector<int>> indiceMultipleTW = data.indiceMultipleTW();
 
-cout << "MISSIONS " << size_missions_multipleTW << endl;
-cout << "MISSIONS " << size_missions << endl;
+    cout << "MISSIONS " << size_missions_multipleTW << endl;
+    cout << "MISSIONS " << size_missions << endl;
 
-if (tw_start.size() != 0){
-for (int i=0; i<size_missions_multipleTW; i++){
-  cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
-}
-}
-for (int i=0; i<nbVechicle; i++){
-  cout << i << " Capacity" << " " << Capa[i] << endl;
-}
-
-for (int i=0; i<size_missions_multipleTW; i++){
-  cout << i << " Demand" << " " << demand[i] << endl;
-}
-
-char name[64];
-
-IloIntervalVarArray visit(env,size_missions_multipleTW+2);
-IloIntervalVarArray2 tvisit2(env,size_missions_multipleTW+2);
-for (IloInt i=0; i<size_missions_multipleTW+2; i++){
-  if (i==0 || i==(size_missions_multipleTW+1)){
-    visit[i] = IloIntervalVar(env);
-  }else{
-    sprintf(name, "Node-%ld", (long) i+1);
-    visit[i] = IloIntervalVar(env, duration[i-1], name);
-  }
-  tvisit2[i] = IloIntervalVarArray(env, nbVechicle);
-  for (IloInt j=0; j<nbVechicle; j++){
-    if (i==0 || i==(size_missions_multipleTW+1)){
-      tvisit2[i][j] = IloIntervalVar(env);
-    }else{
-      tvisit2[i][j] = IloIntervalVar(env);
-      tvisit2[i][j].setOptional();
+    if (tw_start.size() != 0){
+      for (int i=0; i<size_missions_multipleTW; i++){
+        cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
+      }
     }
-  }
-}
+    for (int i=0; i<nbVechicle; i++){
+      cout << i << " Capacity" << " " << Capa[i] << endl;
+    }
 
-IloIntervalVarArray2 tvisit(env,nbVechicle);
-for (IloInt i=0; i<nbVechicle; i++){
-  tvisit[i] = IloIntervalVarArray(env, size_missions_multipleTW+2);
-  for (IloInt j=0; j<size_missions_multipleTW+2; j++) {
-    tvisit[i][j] = tvisit2[j][i];
-  }
-}
+    for (int i=0; i<size_missions_multipleTW; i++){
+      cout << i << " Demand" << " " << demand[i] << endl;
+    }
+
+    char name[64];
+
+    IloIntervalVarArray visit(env,size_missions_multipleTW+2);
+    IloIntervalVarArray2 tvisit2(env,size_missions_multipleTW+2);
+    for (IloInt i=0; i<size_missions_multipleTW+2; i++){
+      if (i==0 || i==(size_missions_multipleTW+1)){
+        visit[i] = IloIntervalVar(env);
+      }else{
+        sprintf(name, "Node-%ld", (long) i+1);
+        visit[i] = IloIntervalVar(env, duration[i-1], name);
+      }
+      tvisit2[i] = IloIntervalVarArray(env, nbVechicle);
+      for (IloInt j=0; j<nbVechicle; j++){
+        if (i==0 || i==(size_missions_multipleTW+1)){
+          tvisit2[i][j] = IloIntervalVar(env);
+        }else{
+          tvisit2[i][j] = IloIntervalVar(env);
+          tvisit2[i][j].setOptional();
+        }
+      }
+    }
+
+    IloIntervalVarArray2 tvisit(env,nbVechicle);
+    for (IloInt i=0; i<nbVechicle; i++){
+      tvisit[i] = IloIntervalVarArray(env, size_missions_multipleTW+2);
+      for (IloInt j=0; j<size_missions_multipleTW+2; j++) {
+        tvisit[i][j] = tvisit2[j][i];
+      }
+    }
 
 // Matric declaration
-IloTransitionDistance Dist(env, size_missions_multipleTW+2);
+    IloTransitionDistance Dist(env, size_missions_multipleTW+2);
 
 // if (size_missions_multipleTW == size_missions){
 // If there is not services whith multiple timewindows, no work on the matrice
-for (IloInt i=0; i<size_missions+2; i++) {
-  for (IloInt j=0; j<size_missions+2; j++){
-    Dist.setValue(i,j,Matrix[i][j]);
-  }
-}
+    for (IloInt i=0; i<size_missions+2; i++) {
+      for (IloInt j=0; j<size_missions+2; j++){
+        Dist.setValue(i,j,Matrix[i][j]);
+      }
+    }
 // }else{
 // // If there is not services whith multiple timewindows, no work on the matrice
 // int k=0;
@@ -144,21 +150,21 @@ for (IloInt i=0; i<size_missions+2; i++) {
 // }
 
 // Sequence Variable declaration + IloNoOverlap constraint
-IloIntervalSequenceVarArray seq(env,nbVechicle);
-for (int i=0; i<nbVechicle; i++){
-  seq[i] = IloIntervalSequenceVar(env, tvisit[i]);
-  model.add(IloNoOverlap(env,seq[i],Dist));
-}
+    IloIntervalSequenceVarArray seq(env,nbVechicle);
+    for (int i=0; i<nbVechicle; i++){
+      seq[i] = IloIntervalSequenceVar(env, tvisit[i]);
+      model.add(IloNoOverlap(env,seq[i],Dist));
+    }
 
 // Set timewindows
-if (tw_start.size() != 0){
-  for (IloInt j=0; j<nbVechicle; j++){
-    for (IloInt i=1; i<size_missions_multipleTW+1; i++){
-      tvisit2[i][j].setStartMin(tw_start[i-1]);
-      tvisit2[i][j].setEndMax(tw_end[i-1]);
+    if (tw_start.size() != 0){
+      for (IloInt j=0; j<nbVechicle; j++){
+        for (IloInt i=1; i<size_missions_multipleTW+1; i++){
+          tvisit2[i][j].setStartMin(tw_start[i-1]);
+          tvisit2[i][j].setEndMax(tw_end[i-1]);
+        }
+      }
     }
-  }
-}
 
 // We can take only one of the duplicated services (a service is duplicate if it has severals timewindows)
 // if (indiceMultipleTW.size() != 0){
@@ -185,44 +191,44 @@ if (tw_start.size() != 0){
 // }
 
 // IloFirst constraint
-for (IloInt i=0; i<nbVechicle; i++){
-  model.add(IloFirst(env,seq[i],tvisit[i][0]));
-}
+    for (IloInt i=0; i<nbVechicle; i++){
+      model.add(IloFirst(env,seq[i],tvisit[i][0]));
+    }
 
 // Objective declaration
-IloIntExpr ends(env);
-for (IloInt i=0; i<nbVechicle; i++){
-  IloIntervalVar prec;
-  prec = tvisit2[size_missions_multipleTW+1][i];
-  ends+=(IloEndOf(prec));
-}
-IloObjective objective = IloMinimize(env,(ends));
-model.add(objective);
+    IloIntExpr ends(env);
+    for (IloInt i=0; i<nbVechicle; i++){
+      IloIntervalVar prec;
+      prec = tvisit2[size_missions_multipleTW+1][i];
+      ends+=(IloEndOf(prec));
+    }
+    IloObjective objective = IloMinimize(env,(ends));
+    model.add(objective);
 
 // Capacity constraint
-if (demand.size() != 0){
-for (IloInt i=0; i<nbVechicle; i++){
-  IloIntExpr expr2(env);
-  for (IloInt j=1; j<size_missions_multipleTW+1; j++){
-    expr2 += IloPresenceOf(env,tvisit[i][j])*demand[j-1];
-  }
-  model.add(expr2 <= Capa[i]);
-}
-}
+    if (demand.size() != 0){
+      for (IloInt i=0; i<nbVechicle; i++){
+        IloIntExpr expr2(env);
+        for (IloInt j=1; j<size_missions_multipleTW+1; j++){
+          expr2 += IloPresenceOf(env,tvisit[i][j])*demand[j-1];
+        }
+        model.add(expr2 <= Capa[i]);
+      }
+    }
 
 //IloLast constraint
-for (IloInt i=0; i<nbVechicle; i++){
-  model.add(IloLast(env,seq[i],tvisit[i][size_missions_multipleTW+1]));
-}
+    for (IloInt i=0; i<nbVechicle; i++){
+      model.add(IloLast(env,seq[i],tvisit[i][size_missions_multipleTW+1]));
+    }
 
 // IloAlternative constraint
-for (IloInt i=1; i<size_missions_multipleTW+1; i++){
-  if (i==0 || i==(size_missions_multipleTW+1)){
+    for (IloInt i=1; i<size_missions_multipleTW+1; i++){
+      if (i==0 || i==(size_missions_multipleTW+1)){
     // Do nothing
-  }else {
-    model.add(IloAlternative(env,visit[i], tvisit2[i]));
-  }
-}
+      }else {
+        model.add(IloAlternative(env,visit[i], tvisit2[i]));
+      }
+    }
 
 // Declaration of cp resolution
 // IloCP cp(model);
@@ -234,48 +240,54 @@ for (IloInt i=1; i<size_missions_multipleTW+1; i++){
 // IloSearchPhaseArray phaseArray(env);
 // phaseArray.add(IloSearchPhase(env, seq));
 
-IloCP cp(model);
-cp.setParameter(IloCP::LogPeriod, IloIntMax);
-cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-cp.setParameter(IloCP::TimeLimit, 36);
-IloSearchPhaseArray phaseArray(env);
-phaseArray.add(IloSearchPhase(env, seq));
+    IloCP cp(model);
+    cp.setParameter(IloCP::LogPeriod, IloIntMax);
+    cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
+    cp.setParameter(IloCP::TimeLimit, 36);
+    IloSearchPhaseArray phaseArray(env);
+    phaseArray.add(IloSearchPhase(env, seq));
 
-cp.solve();
+    cp.solve();
+    
 
 
 // A mettre dans un fichier !
-if (tw_start.size() != 0){
-for (int i=0; i<size_missions_multipleTW; i++){
-  cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
-}
-}
-for (int i=0; i<nbVechicle; i++){
-  cout << i << " Capacity" << " " << Capa[i] << endl;
-}
+    if (tw_start.size() != 0){
+      for (int i=0; i<size_missions_multipleTW; i++){
+        cout << i << " TimeWindow " << tw_start[i] << " " << tw_end[i] << endl;
+      }
+    }
+    for (int i=0; i<nbVechicle; i++){
+      cout << i << " Capacity" << " " << Capa[i] << endl;
+    }
 
-for (int i=0; i<size_missions_multipleTW; i++){
-  cout << i << " Demand" << " " << demand[i] << endl;
-}
+    for (int i=0; i<size_missions_multipleTW; i++){
+      cout << i << " Demand" << " " << demand[i] << endl;
+    }
 
-for (IloInt j=0; j<nbVechicle; j++) {
-  for (IloInt i=0; i<size_missions_multipleTW+2; i++){
-    cp.out() << i << " " << j << " " << cp.domain(tvisit2[i][j]) << std::endl;
+    for (IloInt j=0; j<nbVechicle; j++) {
+      for (IloInt i=0; i<size_missions_multipleTW+2; i++){
+        cp.out() << i << " " << j << " " << cp.domain(tvisit2[i][j]) << std::endl;
+      }
+      cout << endl;
+      cout << "Solution per truck :" << endl;
+      for (IloInt j=0; j<nbVechicle; j++) {
+        CheckSolution(cp, seq[j]);
+      }
+    }
+
+    int cost = (cp.getObjValue());
+
+    result.set_cost(cost);
+
+    google::protobuf::ShutdownProtobufLibrary();
+
+    return cp.getObjValue();
+
+  } catch (IloException& ex) {
+    env.out() << "Caught exception: " << ex << std::endl;
   }
-  cout << endl;
-}
-
-int cost = (cp.getObjValue());
-
-result.set_cost(cost);
-
-google::protobuf::ShutdownProtobufLibrary();
-return cp.getObjValue();
-
-} catch (IloException& ex) {
-  env.out() << "Caught exception: " << ex << std::endl;
-}
-env.end();
+  env.end();
 }
 
 

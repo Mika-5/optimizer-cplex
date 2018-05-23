@@ -111,6 +111,8 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
       }else {
         sprintf(name, "V-%ld-Node-%ld", (long) i -1, (long) i+1);
         visit[i] = IloIntervalVar(env, duration[i-1], name);
+        visit[i].setOptional();  // to enable to find always a solution.
+        // NEED to add a cost to penalize non performing visit.
       }
       // assert ( 1 == 2);
       tvisitTV[i] = IloIntervalVarArray(env, nbVehicle);
@@ -190,7 +192,6 @@ IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
     }
 
 // Objective declaration
-
 
 
     IloIntExpr ends(env);

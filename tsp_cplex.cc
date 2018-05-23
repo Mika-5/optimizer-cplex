@@ -53,12 +53,6 @@ void CheckSolution(IloCP cp, IloIntervalSequenceVar seq) {
       cp.out() << "Truck : "  << ":\t" << cp.domain(a) << endl; 
 }
 
-// ToDO
-// - Fix capa constraint
-// - Verify mutiple windows
-// - Check vs all datasets : add assert on code to check input data
-// - Check consitency of objective value.
-
 
 IloNum TWBuilder(const TSPTWDataDT &data, string filename) {
 

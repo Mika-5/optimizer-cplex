@@ -120,7 +120,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
   nbVecs_=nbVehicle;
 
   int quant=0;
-  int j=-1;
+  int j=0;
   int tws = 0;
   vector<int> start;
   vector<int> end;

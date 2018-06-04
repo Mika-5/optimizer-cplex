@@ -26,15 +26,15 @@ public:
   }
   void LoadInstance(const string & filename);
 
-  vector<int> demand() const{
-    return demand_;
+  vector<int> Demands() const {
+    return Demands_;
   }
 
-  vector<int> duration() const{
-    return duration_;
+  vector<int> Durations() const {
+    return Durations_;
   }
 
-  vector<int> Capa_Vec() const {
+  vector<int> CapaVecs() const {
     return CapaVec_;
   }
 
@@ -46,31 +46,31 @@ public:
     return nbVecs_;
   }
 
-  vector< vector<float> > Matrice() const{
+  vector<vector<float>> Matrice() const {
     return matrice_;
   }
 
-  vector<vector<int>> TimeWindow_Start() const {
+  vector<vector<int>> TimeWindowStarts() const {
     return timewindow_start_ ;
   }
 
-  vector<vector<int>> TimeWindow_End() const {
+  vector<vector<int>> TimeWindowEnds() const {
     return timewindow_end_ ;
   }
 
-  vector<vector<int>> indiceMultipleTW() const {
+  vector<vector<int>> IndiceMultipleTW() const {
     return indiceMultipleTW_;
   }
 
-  int size_missions_multipleTW() const {
+  int SizeMissionsMultipleTW() const {
     return size_missions_multipleTW_;
   }
 
-  vector<int> tw_start_car() const {
+  vector<int> TwStartCar() const {
     return tw_start_car_;
   }
 
-  vector<int> tw_end_car() const {
+  vector<int> TwEndCar() const {
     return tw_end_car_;
   }
 
@@ -82,8 +82,8 @@ private:
   int size_missions_multipleTW_;
   int nbVecs_;
   vector<int> CapaVec_;
-  vector<int> demand_;
-  vector<int> duration_;
+  vector<int> Demands_;
+  vector<int> Durations_;
   vector<int> tw_start_car_;
   vector<int> tw_end_car_;
   vector<vector<int>> timewindow_start_;
@@ -107,7 +107,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
 
 
   int nbService=0;
-  for (const cplex_vrp::Service& service: problem.services()){
+  for (const cplex_vrp::Service& service: problem.services()) {
     nbService++;
   }
   size_missions_ = nbService;
@@ -124,20 +124,20 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
   int tws = 0;
   vector<int> start;
   vector<int> end;
-  for (const cplex_vrp::Service& service: problem.services()){
+  for (const cplex_vrp::Service& service: problem.services()) {
     j+=1;
-    // if (service.duration() != 0){
-      duration_.push_back(service.duration());
+    // if (service.Durations() != 0){
+      Durations_.push_back(service.Durations());
     // }
     for (const int& quantity: service.quantities()) {
-      demand_.push_back(quantity/1000);
+      Demands_.push_back(quantity/1000);
     }
 
     // if (service.time_windows().size()!=1 && service.time_windows().size()!=0){
     //   for (const int& quantity: service.quantities()) {
-    //     demand_.push_back(quantity/1000);
+    //     Demands_.push_back(quantity/1000);
     //   }
-    //   duration_.push_back(service.duration());
+    //   Durations_.push_back(service.Durations());
     //   size_missions_multipleTW_+=1;
     //   for (int i=0; i<service.time_windows().size(); i++){
     //     indice_.push_back(i+j+1);
@@ -163,15 +163,41 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
     tw_end_car_.push_back(vehicle.time_window().end());
   }
 
-  for (int i=0; i<nbService+2; i++){
+
+for (const cplex_vrp::Matrix& matrix: problem.matrices()) {
+  int size_matrix5 = sqrt(matrix.time().size());
+  if (size_matrix5 == size_missions_ + 2) {
+  int size_matrix = sqrt(matrix.time().size());
+  for (int i=0; i<size_matrix; i++) {
     vector<float> tab;
-    for (int j=0; j<nbService +2; j++){
-      for (const cplex_vrp::Matrix& matrix: problem.matrices()){
-      tab.push_back(static_cast<float>(matrix.time(i * (nbService+2) + j)));
-      } 
-    }
+    for (int j=0; j<size_matrix; j++) {
+      // for (const cplex_vrp::Matrix& matrix: problem.matrices()){
+      tab.push_back(static_cast<float>(matrix.time(i * (size_matrix) + j)));
+    } 
     matrice_.push_back(tab);
+    // for (int i=0; i<matrice_.size(); i++){
+    //   cout << matrice_[i] << " ";
+    // }
+    // cout << endl;
   }
+  } else {
+  int size_matrix = sqrt(matrix.time().size()) - (CapaVec_.size()-1)*2;
+  for (int i=0; i<size_matrix; i++) {
+    vector<float> tab;
+    for (int j=0; j<size_matrix; j++) {
+      // for (const cplex_vrp::Matrix& matrix: problem.matrices()){
+      tab.push_back(static_cast<float>(matrix.time(i * (size_matrix + (CapaVec_.size()-1)*2) + j)));
+    } 
+    matrice_.push_back(tab);
+    // for (int i=0; i<matrice_.size(); i++){
+    //   cout << matrice_[i] << " ";
+    // }
+    // cout << endl;
+  }
+  }
+
+    
+}
 
 }
 

@@ -54,7 +54,9 @@ CPLEXLIBDIR = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 CONCERTLIBDIR = $(CONCERTDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 
 CCLNFLAGS = $(ILOG_HOME)/cpoptimizer/lib/x86-64_linux/static_pic -lcp -L $(CPLEXLIBDIR) -lilocplex -lcplex -L $(CONCERTLIBDIR) -lconcert -m64 -lm -pthread
-LDFLAGS = -L $(ILOG_HOME)/cpoptimizer/lib/x86-64_linux/static_pic -lcp -L$(CPLEXDIR)/lib/x86-64_linux/static_pic -lcplex -L$(CONCERTDIR)/lib/x86-64_linux/static_pic -lconcert  -lpthread -lm -ldl 
+LDFLAGS = -I$(CPLEX)/cplex/include -I$(CPLEX)/concert/include -DIL_STD -lilocplex -L $(ILOG_HOME)/cpoptimizer/lib/x86-64_linux/static_pic -lcp -L$(CPLEXDIR)/lib/x86-64_linux/static_pic -lcplex -L$(CONCERTDIR)/lib/x86-64_linux/static_pic -lconcert  -lpthread -lm -ldl 
+
+
 
 CCFLAGS = $(CCOPT) -I $(CPLEXBINDIR) -I $(CONCERTXBINDIR) -w
 
@@ -152,6 +154,7 @@ tsp_cplex: tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o $(CPLEX_TOP)/cpoptimizer
 	$(CCC) $(CFLAGS) -g tsp_cplex.o cplex_vrp.pb.o cplex_result.pb.o -lz -lrt -lpthread \
 	-L $(CPLEX_TOP)/cpoptimizer/lib/x86-64_linux/static_pic/libcp.a -L dependencies/install/lib -lprotobuf -L dependencies/install/lib -lgflags \
 	-o tsp_cplex $(LDFLAGS)
+
 
 local_clean:
 	rm -f *.pb.cc *.pb.h

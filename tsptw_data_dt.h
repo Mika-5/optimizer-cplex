@@ -127,7 +127,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
   for (const cplex_vrp::Service& service: problem.services()) {
     j+=1;
     // if (service.Durations() != 0){
-      Durations_.push_back(service.Durations());
+      Durations_.push_back(service.duration());
     // }
     for (const int& quantity: service.quantities()) {
       Demands_.push_back(quantity/1000);

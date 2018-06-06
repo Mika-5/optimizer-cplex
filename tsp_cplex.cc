@@ -186,12 +186,14 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
           model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
         }
       }else {
+        if (tw_start[i].size()!=0){
         for (int j=0; j<tw_start[i].size(); j++) {
           StepFunction.setValue(tw_start[i][j], twEnd[i][j], 100);
         }
         for (IloInt j=0; j<nbVehicle; j++) {
           tvisitTV[i][j].setIntensity(StepFunction);
           model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
+        }
         }
       }
     }
@@ -256,7 +258,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     IloCP cp(model);
     cp.setParameter(IloCP::LogPeriod, IloIntMax);
     cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-    cp.setParameter(IloCP::TimeLimit, 15);
+    cp.setParameter(IloCP::TimeLimit, 300);
     IloSearchPhaseArray phaseArray(env);
     phaseArray.add(IloSearchPhase(env, seq));
 
@@ -290,8 +292,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         token = str.substr(0, pos);
         str.erase(0, pos + delimiter.length());
         }
-        cout << token << endl;
-        cout << str << endl;
 
         int service_nb = stoi(str);
         if (token == "FB" && index==1) {

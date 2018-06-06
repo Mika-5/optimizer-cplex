@@ -106,14 +106,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
       twEnd.push_back(tw_temp);
     }
 
-    if (tw_start.size() != 0){
-      for (int i=0; i<size_missions_multipleTW; i++){
-        for (int j=0; j<tw_start[i].size(); j++){
-          cout << i << " TimeWindow " << tw_start[i][j] << " " << twEnd[i][j] << " ";
-        }
-        cout << endl;
-      }
-    }
 
     IloIntervalVarArray visit(env, size_missions_multipleTW+2); // real visits + 2  from and back
     IloIntervalVarArray2 tvisitTV(env, size_missions_multipleTW+2); // truck visits + from & back indexed by Visit x Vehicle
@@ -142,6 +134,11 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
           tvisitTV[i][j].setName(name);
         }
       }
+    }
+
+    for (IloInt j= 0; j<nbVehicle; j++){
+      model.add(IloStartOf(tvisitTV[size_missions_multipleTW][j]) >= tw_start_car[j]);
+      model.add(IloEndOf(tvisitTV[size_missions_multipleTW+1][j]) <= tw_end_car[j]);
     }
 
 
@@ -177,13 +174,18 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         for (IloInt j=0; j<tw_start_car.size(); j++) {
           StepFunction.setValue(tw_start_car[j], tw_end_car[j], 100);
           tvisitTV[i][j].setIntensity(StepFunction);
-          model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
+          cout << "Truck : "  << ":\t" << (tvisitTV[i][j]) << endl;
+          // model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
+          // model.add(IloForbidStart(env, tvisitTV[i][j], StepFunction));
+          model.add(IloForbidEnd(env, tvisitTV[i][j], StepFunction));
         }
       }else if (i==size_missions+1) {
         for (IloInt j=0; j<tw_start_car.size(); j++) {
           StepFunction.setValue(tw_start_car[j], tw_end_car[j], 100);
           tvisitTV[i][j].setIntensity(StepFunction);
           model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
+          // model.add(IloForbidStart(env, tvisitTV[i][j], StepFunction));
+          // model.add(IloForbidEnd(env, tvisitTV[i][j], StepFunction));
         }
       }else {
         if (tw_start[i].size()!=0){

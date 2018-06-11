@@ -25,7 +25,7 @@ public:
   }
   void LoadInstance(const string & filename);
 
-  vector<int> Demands() const {
+  vector<float> Demands() const {
     return Demands_;
   }
 
@@ -81,7 +81,7 @@ private:
   int size_missions_multipleTW_;
   int nbVecs_;
   vector<int> CapaVec_;
-  vector<int> Demands_;
+  vector<float> Demands_;
   vector<int> Durations_;
   vector<int> tw_start_car_;
   vector<int> tw_end_car_;
@@ -128,7 +128,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
     // if (service.Durations() != 0) {
     Durations_.push_back(service.duration());
     // }
-    for (const int& quantity: service.quantities()) {
+    for (const float& quantity: service.quantities()) {
       Demands_.push_back(quantity/1000);
     }
 

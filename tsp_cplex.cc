@@ -71,7 +71,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     const int size_missions_multipleTW = data.SizeMissionsMultipleTW();
     const int nbVehicle = data.NbVehicles();
     const vector<int> Capa = data.CapaVecs();
-    const vector<int> demand = data.Demands();
+    const vector<float> demand = data.Demands();
     const vector<int> duration = data.Durations();
     const vector<vector<int>> tw_start = data.TimeWindowStarts();
     const vector<vector<int>> tw_end = data.TimeWindowEnds();
@@ -236,9 +236,9 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     //   } 
     // }
 
-    if (demand.size() != 0){
+    if (demand.size() != 0) {
       for (IloInt i=0; i<nbVehicle; i++) {
-        IloIntExpr expr2(env);
+        IloNumExpr expr2(env);
         for (IloInt j=0; j<size_missions_multipleTW; j++) {
            expr2 += IloPresenceOf(env, tvisit[i][j])*demand[j];
         }

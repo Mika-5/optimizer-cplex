@@ -11,7 +11,6 @@
 #include <string>
 
 #include "cplex_vrp.pb.h"
-// #include "routing_common/routing_common.h"
 
 #define CUSTOM_MAX_INT (int) pow(2,30)
 
@@ -126,20 +125,20 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
   vector<int> end;
   for (const cplex_vrp::Service& service: problem.services()) {
     j+=1;
-    // if (service.Durations() != 0){
-      Durations_.push_back(service.duration());
+    // if (service.Durations() != 0) {
+    Durations_.push_back(service.duration());
     // }
     for (const int& quantity: service.quantities()) {
       Demands_.push_back(quantity/1000);
     }
 
-    // if (service.time_windows().size()!=1 && service.time_windows().size()!=0){
+    // if (service.time_windows().size()!=1 && service.time_windows().size()!=0) {
     //   for (const int& quantity: service.quantities()) {
     //     Demands_.push_back(quantity/1000);
     //   }
     //   Durations_.push_back(service.Durations());
     //   size_missions_multipleTW_+=1;
-    //   for (int i=0; i<service.time_windows().size(); i++){
+    //   for (int i=0; i<service.time_windows().size(); i++) {
     //     indice_.push_back(i+j+1);
     //   }
     //   indiceMultipleTW_.push_back(indice_);
@@ -164,41 +163,34 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
   }
 
 
-for (const cplex_vrp::Matrix& matrix: problem.matrices()) {
-  int size_matrix5 = sqrt(matrix.time().size());
-  if (size_matrix5 == size_missions_ + 2) {
-  int size_matrix = sqrt(matrix.time().size());
-  for (int i=0; i<size_matrix; i++) {
-    vector<float> tab;
-    for (int j=0; j<size_matrix; j++) {
-      // for (const cplex_vrp::Matrix& matrix: problem.matrices()){
-      tab.push_back(static_cast<float>(matrix.time(i * (size_matrix) + j)));
-    } 
-    matrice_.push_back(tab);
-    // for (int i=0; i<matrice_.size(); i++){
-    //   cout << matrice_[i] << " ";
-    // }
-    // cout << endl;
+  for (const cplex_vrp::Matrix& matrix: problem.matrices()) {
+    int size_matrix5 = sqrt(matrix.time().size());
+    if (size_matrix5 == size_missions_ + 2) {
+      int size_matrix = sqrt(matrix.time().size());
+      for (int i=0; i<size_matrix; i++) {
+        vector<float> tab;
+        for (int j=0; j<size_matrix; j++) {
+        // for (const cplex_vrp::Matrix& matrix: problem.matrices()) {
+          tab.push_back(static_cast<float>(matrix.time(i * (size_matrix) + j)));
+        } 
+        matrice_.push_back(tab);
+      }
+    } else {
+      int size_matrix = sqrt(matrix.time().size()) - (CapaVec_.size()-1)*2;
+      for (int i=0; i<size_matrix; i++) {
+        vector<float> tab;
+        for (int j=0; j<size_matrix; j++) {
+          // for (const cplex_vrp::Matrix& matrix: problem.matrices()) {
+          tab.push_back(static_cast<float>(matrix.time(i * (size_matrix + (CapaVec_.size()-1)*2) + j)));
+        } 
+        matrice_.push_back(tab);
+        // for (int i=0; i<matrice_.size(); i++) {
+        //   cout << matrice_[i] << " ";
+        // }
+        // cout << endl;
+      }
+    }
   }
-  } else {
-  int size_matrix = sqrt(matrix.time().size()) - (CapaVec_.size()-1)*2;
-  for (int i=0; i<size_matrix; i++) {
-    vector<float> tab;
-    for (int j=0; j<size_matrix; j++) {
-      // for (const cplex_vrp::Matrix& matrix: problem.matrices()){
-      tab.push_back(static_cast<float>(matrix.time(i * (size_matrix + (CapaVec_.size()-1)*2) + j)));
-    } 
-    matrice_.push_back(tab);
-    // for (int i=0; i<matrice_.size(); i++){
-    //   cout << matrice_[i] << " ";
-    // }
-    // cout << endl;
-  }
-  }
-
-    
-}
-
 }
 
 }  //  namespace operations_research

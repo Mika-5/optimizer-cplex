@@ -38,7 +38,7 @@ DEFINE_string(solution_file, "", "instance file name or data");
 void CheckSolutionMikea(IloCP cp, IloIntervalSequenceVar seq, int j, IloIntervalVarArray2 tvisitTV, int size_missions_multipleTW) {
   // n Solution
 
-  for (IloInt i=0; i<size_missions_multipleTW+2; i++){
+  for (IloInt i=0; i<size_missions_multipleTW+2; i++) {
     assert(tvisitTV[i][j].getImpl() != 0);
     cp.out() << i << " " << j << " " << cp.domain(tvisitTV[i][j]) << endl;
   }
@@ -86,7 +86,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     int max = 0;
     for (int i=0; i<Matrix.size(); i++) {
       for (int j=0; j<Matrix[i].size(); j++) {
-        if (Matrix[i][j] > max){
+        if (Matrix[i][j] > max) {
           max = Matrix[i][j];
         }
       }
@@ -94,12 +94,12 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
 
     vector<vector<int>> twEnd;
 
-    for (int i=0; i<size_missions_multipleTW; i++){
+    for (int i=0; i<size_missions_multipleTW; i++) {
       vector<int> tw_temp;
-      for (int j=0; j<tw_start[i].size(); j++){
-        if (tw_end[i][j] == 0){
+      for (int j=0; j<tw_start[i].size(); j++) {
+        if (tw_end[i][j] == 0) {
           tw_temp.push_back(82800);
-        }else {
+        } else {
           tw_temp.push_back(tw_end[i][j]);
         }
       }
@@ -174,7 +174,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         for (IloInt j=0; j<tw_start_car.size(); j++) {
           StepFunction.setValue(tw_start_car[j], tw_end_car[j], 100);
           tvisitTV[i][j].setIntensity(StepFunction);
-          cout << "Truck : "  << ":\t" << (tvisitTV[i][j]) << endl;
           // model.add(IloForbidExtent(env, tvisitTV[i][j], StepFunction));
           // model.add(IloForbidStart(env, tvisitTV[i][j], StepFunction));
           model.add(IloForbidEnd(env, tvisitTV[i][j], StepFunction));
@@ -238,10 +237,10 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     // }
 
     if (demand.size() != 0){
-      for (IloInt i=0; i<nbVehicle; i++){
+      for (IloInt i=0; i<nbVehicle; i++) {
         IloIntExpr expr2(env);
-        for (IloInt j=0; j<size_missions_multipleTW; j++){
-           expr2 += IloPresenceOf(env,tvisit[i][j])*demand[j];
+        for (IloInt j=0; j<size_missions_multipleTW; j++) {
+           expr2 += IloPresenceOf(env, tvisit[i][j])*demand[j];
         }
         model.add(expr2 <= Capa[i]);
       }
@@ -260,7 +259,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     IloCP cp(model);
     cp.setParameter(IloCP::LogPeriod, IloIntMax);
     cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-    cp.setParameter(IloCP::TimeLimit, 300);
+    cp.setParameter(IloCP::TimeLimit, 1800);
     IloSearchPhaseArray phaseArray(env);
     phaseArray.add(IloSearchPhase(env, seq));
 
@@ -275,7 +274,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
 
     cost = (cp.getObjValue());
 
-
     result.set_cost(cost);
     result.clear_routes();
     for (int i=0; i<nbVehicle; i++) {
@@ -286,7 +284,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         cplex_result::Activity* activity = route->add_activities();
         vector<string> nickname;
         string str = a.getName();
-
         string delimiter = "-";
         size_t pos = 0;
         string token;
@@ -294,7 +291,6 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         token = str.substr(0, pos);
         str.erase(0, pos + delimiter.length());
         }
-
         int service_nb = stoi(str);
         if (token == "FB" && index==1) {
           activity->set_start_time(cp.getStart(a));
@@ -309,9 +305,8 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
         }else {
           activity->set_start_time(cp.getStart(a));
           activity->set_type("service");
-          int ind = service_nb;
-          activity->set_index(ind);
-          quant += demand[ind];
+          activity->set_index(service_nb);
+          quant += demand[service_nb];
           activity->add_quantities(quant);
         }
       }
@@ -338,7 +333,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
 
 
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
 
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   TSPTWDataDT tsptw_data(FLAGS_instance_file);

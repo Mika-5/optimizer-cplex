@@ -14,7 +14,7 @@ message TimeWindow {
 
 message Service {
   repeated TimeWindow time_windows = 1;
-  repeated float quantities = 2;
+  repeated int32 quantities = 2;
   uint32 matrix_index = 3;
   string id = 4;
   int64 duration = 5;

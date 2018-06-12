@@ -5,7 +5,7 @@ option optimize_for = SPEED;
 
 message Activity {
   int32 index = 1;
-  repeated float quantities = 2;
+  repeated int32 quantities = 2;
   int32 start_time = 3;
   string type = 4;
 }

@@ -25,7 +25,7 @@ public:
   }
   void LoadInstance(const string & filename);
 
-  vector<float> Demands() const {
+  vector<int> Demands() const {
     return Demands_;
   }
 
@@ -81,7 +81,7 @@ private:
   int size_missions_multipleTW_;
   int nbVecs_;
   vector<int> CapaVec_;
-  vector<float> Demands_;
+  vector<int> Demands_;
   vector<int> Durations_;
   vector<int> tw_start_car_;
   vector<int> tw_end_car_;
@@ -129,7 +129,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
     Durations_.push_back(service.duration());
     // }
     for (const float& quantity: service.quantities()) {
-      Demands_.push_back(quantity/1000);
+      Demands_.push_back(quantity);
     }
 
     // if (service.time_windows().size()!=1 && service.time_windows().size()!=0) {
@@ -156,7 +156,7 @@ void TSPTWDataDT::LoadInstance(const string & filename) {
 
   for (const cplex_vrp::Vehicle& vehicle: problem.vehicles()) {
     for (const cplex_vrp::Capacity& capacity: vehicle.capacities()) {
-      CapaVec_.push_back(capacity.limit()/1000);
+      CapaVec_.push_back(capacity.limit());
     }
     tw_start_car_.push_back(vehicle.time_window().start());
     tw_end_car_.push_back(vehicle.time_window().end());

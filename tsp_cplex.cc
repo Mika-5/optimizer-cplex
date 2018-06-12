@@ -4,8 +4,8 @@
 // #define CPLEX_BASE_COMMANDLINEFLAGS_H_
 
 #include "tsptw_data_dt.h"
-#ifndef OR_TOOLS_BASE_COMMANDLINEFLAGS_H_
-#define OR_TOOLS_BASE_COMMANDLINEFLAGS_H_
+#ifndef CPLEX_BASE_COMMANDLINEFLAGS_H_
+#define CPLEX_BASE_COMMANDLINEFLAGS_H_
 
 #include <gflags/gflags.h>
 
@@ -259,7 +259,7 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
     IloCP cp(model);
     cp.setParameter(IloCP::LogPeriod, IloIntMax);
     cp.setParameter(IloCP::NoOverlapInferenceLevel, IloCP::Extended);
-    cp.setParameter(IloCP::TimeLimit, 1800);
+    cp.setParameter(IloCP::TimeLimit, 300);
     IloSearchPhaseArray phaseArray(env);
     phaseArray.add(IloSearchPhase(env, seq));
 

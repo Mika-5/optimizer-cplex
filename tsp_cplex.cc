@@ -227,24 +227,24 @@ IloInt TWBuilder(const TSPTWDataDT &data, string filename) {
 
 
 // Capacity constraint
-    // if (demand.size() != 0) {
-    //   for (IloInt t = 0 ; t < nbVehicle ; t++) {
-    //     IloCumulFunctionExpr truckLoad(env);
-    //     for (IloInt i = 0 ; i < size_missions_multipleTW ; i++) 
-    //       truckLoad += IloStepAtStart(tvisitTV[i][t], demand[i]);
-    //     model.add(truckLoad <= Capa[t]);
-    //   } 
-    // }
-
     if (demand.size() != 0) {
-      for (IloInt i=0; i<nbVehicle; i++) {
-        IloNumExpr expr2(env);
-        for (IloInt j=0; j<size_missions_multipleTW; j++) {
-           expr2 += IloPresenceOf(env, tvisit[i][j])*demand[j];
-        }
-        model.add(expr2 <= Capa[i]);
+      for (IloInt t = 0 ; t < nbVehicle ; t++) {
+        IloCumulFunctionExpr truckLoad(env);
+        for (IloInt i = 0 ; i < size_missions_multipleTW ; i++) 
+          truckLoad += IloStepAtStart(tvisitTV[i][t], demand[i]);
+        model.add(truckLoad <= Capa[t]);
       }
     }
+
+    // if (demand.size() != 0) {
+    //   for (IloInt i=0; i<nbVehicle; i++) {
+    //     IloNumExpr expr2(env);
+    //     for (IloInt j=0; j<size_missions_multipleTW; j++) {
+    //        expr2 += IloPresenceOf(env, tvisit[i][j])*demand[j];
+    //     }
+    //     model.add(expr2 <= Capa[i]);
+    //   }
+    // }
 
 
 // IloAlternative constraint
